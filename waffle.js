@@ -171,59 +171,61 @@ function Waffle(x, y, width, height, boxesAcross, boxesDown, data, columnHeading
     };
 
     //check if mouse is over any box and display tooltip
+    //optimised: calculate target box directly instead of iterating all boxes
     this.checkMouse = function() {
         //adjust mouse coordinates relative to waffle position
         var mx = mouseX - x;
         var my = mouseY - y;
 
-        //check each box
-        for (var i = 0; i < boxesAcross; i++) {
-            for (var j = 0; j < boxesDown; j++) {
-                if (boxes[i] && boxes[i][j]) {
-                    //check if mouse is over this box
-                    if (boxes[i][j].mouseOver(mx, my)) {
-                        //display tooltip
-                        var category = boxes[i][j].category;
+        //early exit if mouse is outside the waffle area
+        if (mx < 0 || mx >= width || my < 0 || my >= height) {
+            return;
+        }
 
-                        if (category) {
-                            //draw tooltip background
-                            push();
-                            fill(255, 255, 255, 230); // semi-transparent white
-                            stroke(0);
-                            strokeWeight(1);
+        //calculate which box the mouse is over directly (O(1) lookup)
+        var col = Math.floor(mx / boxWidth);
+        var row = Math.floor(my / boxHeight);
 
-                            //tooltip dimensions
-                            var tooltipWidth = 150;
-                            var tooltipHeight = 40;
-                            var tooltipX = mouseX + 10;
-                            var tooltipY = mouseY - 25;
+        //bounds check and draw tooltip for the hovered box
+        if (col >= 0 && col < boxesAcross && row >= 0 && row < boxesDown) {
+            if (boxes[col] && boxes[col][row]) {
+                var category = boxes[col][row].category;
 
-                            //keep tooltip on screen
-                            if (tooltipX + tooltipWidth > width) {
-                                tooltipX = mouseX - tooltipWidth - 10;
-                            }
+                if (category) {
+                    //draw tooltip background
+                    push();
+                    fill(255, 255, 255, 230);
+                    stroke(0);
+                    strokeWeight(1);
 
-                            rect(tooltipX, tooltipY, tooltipWidth, tooltipHeight, 5);
+                    //tooltip dimensions
+                    var tooltipWidth = 150;
+                    var tooltipHeight = 40;
+                    var tooltipX = mouseX + 10;
+                    var tooltipY = mouseY - 25;
 
-                            //draw tooltip text
-                            fill(0);
-                            noStroke();
-                            textAlign(LEFT, TOP);
-                            textSize(12);
-                            text(category.name, tooltipX + 5, tooltipY + 5);
-
-                            //show percentage
-                            var percentage = (category.proportion * 100).toFixed(1);
-                            textSize(10);
-                            fill(100);
-                            text(percentage + "% (" + category.count + " responses)",
-                                 tooltipX + 5, tooltipY + 22);
-
-                            pop();
-                        }
-
-                        return; // only show one tooltip at a time
+                    //keep tooltip on screen
+                    if (tooltipX + tooltipWidth > width) {
+                        tooltipX = mouseX - tooltipWidth - 10;
                     }
+
+                    rect(tooltipX, tooltipY, tooltipWidth, tooltipHeight, 5);
+
+                    //draw tooltip text
+                    fill(0);
+                    noStroke();
+                    textAlign(LEFT, TOP);
+                    textSize(12);
+                    text(category.name, tooltipX + 5, tooltipY + 5);
+
+                    //show percentage
+                    var percentage = (category.proportion * 100).toFixed(1);
+                    textSize(10);
+                    fill(100);
+                    text(percentage + "% (" + category.count + " responses)",
+                         tooltipX + 5, tooltipY + 22);
+
+                    pop();
                 }
             }
         }

@@ -16,7 +16,10 @@ function PieChart(x, y, diameter) {
     return radians;
   };
 
-  this.draw = function(data, labels, colours, title) {
+  //my code starts here
+  // Added optional animProgress parameter for smooth sweep animation
+  this.draw = function(data, labels, colours, title, animProgress) {
+  //my code ends here
 
     // Test that data is not empty and that each input array is the
     // same length.
@@ -37,6 +40,12 @@ Arrays must be the same length!`);
     var lastAngle = 0;
     var colour;
 
+    //my code starts here
+    // Calculate the max sweep angle based on animation progress
+    // Default to full circle if no animation progress provided
+    var maxSweep = (animProgress !== undefined ? animProgress : 1) * TWO_PI;
+    //my code ends here
+
     for (var i = 0; i < data.length; i++) {
       if (colours) {
         colour = colours[i];
@@ -44,13 +53,23 @@ Arrays must be the same length!`);
         colour = map(i, 0, data.length, 0, 255);
       }
 
+      //my code starts here
+      // Stop drawing slices once we exceed the animated sweep angle
+      if (lastAngle >= maxSweep) break;
+
+      // Clamp the current slice so it doesn't exceed the sweep limit
+      var sliceAngle = Math.min(angles[i], maxSweep - lastAngle);
+      //my code ends here
+
       fill(colour);
       stroke(0);
       strokeWeight(1);
 
+      //my code starts here
       arc(this.x, this.y,
           this.diameter, this.diameter,
-          lastAngle, lastAngle + angles[i] + 0.001); // Hack for 0!
+          lastAngle, lastAngle + sliceAngle + 0.001); // Hack for 0!
+      //my code ends here
 
       if (labels) {
         this.makeLegendItem(labels[i], i, colour);

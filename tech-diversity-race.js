@@ -39,6 +39,13 @@ function TechDiversityRace() {
     for (let i = 1; i < companies.length; i++) {
       this.select.option(companies[i]);
     }
+
+    //my code starts here
+    // Animation properties — smooth reveal on render and company switch
+    this.animationProgress = 0;
+    this.animationSpeed = 0.04;
+    this.lastCompany = this.select.value();
+    //my code ends here
   };
 
   this.destroy = function() {
@@ -58,6 +65,20 @@ function TechDiversityRace() {
     // select item.
     var companyName = this.select.value();
 
+    //my code starts here
+    // Reset animation when company changes
+    if (companyName !== this.lastCompany) {
+      this.animationProgress = 0;
+      this.lastCompany = companyName;
+    }
+
+    // Ease animation progress towards 1 (decelerating curve)
+    if (this.animationProgress < 1) {
+      this.animationProgress += this.animationSpeed * (1 - this.animationProgress + 0.05);
+      this.animationProgress = Math.min(this.animationProgress, 1);
+    }
+    //my code ends here
+
     // Get the column of raw data for companyName.
     var col = this.data.getColumn(companyName);
 
@@ -73,7 +94,9 @@ function TechDiversityRace() {
     // Make a title.
     var title = 'Employee diversity at ' + companyName;
 
-    // Draw the pie chart!
-    this.pie.draw(col, labels, colours, title);
+    //my code starts here
+    // Draw the pie chart with animated sweep angle
+    this.pie.draw(col, labels, colours, title, this.animationProgress);
+    //my code ends here
   };
 }

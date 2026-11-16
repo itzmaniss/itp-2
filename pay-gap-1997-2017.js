@@ -144,6 +144,70 @@ function PayGapTimeSeries() {
       // position of the next line segment.
       previous = current;
     }
+
+    //my code starts here
+    // Collect year and pay gap data for trend analysis
+    const years = [];
+    const payGaps = [];
+    for (let i = 0; i < this.data.getRowCount(); i++) {
+      years.push(this.data.getNum(i, 'year'));
+      payGaps.push(this.data.getNum(i, 'pay_gap'));
+    }
+
+    // Draw mean pay gap line (dashed via segments)
+    const meanPayGap = Statistics.mean(payGaps);
+    const meanY = this.mapPayGapToHeight(meanPayGap);
+    stroke(50, 150, 50);
+    strokeWeight(1);
+    const dashLen = 8;
+    const gapLen = 6;
+    for (let x = this.layout.leftMargin; x < this.layout.rightMargin; x += dashLen + gapLen) {
+      const endX = Math.min(x + dashLen, this.layout.rightMargin);
+      line(x, meanY, endX, meanY);
+    }
+
+    // Mean label
+    fill(50, 150, 50);
+    noStroke();
+    textAlign(LEFT, BOTTOM);
+    textSize(10);
+    text(`Mean: ${meanPayGap.toFixed(1)}%`, this.layout.leftMargin + 5, meanY - 3);
+
+    // Draw trend line using linear regression
+    if (years.length >= 2) {
+      const regression = Statistics.linearRegression(years, payGaps);
+
+      stroke(255, 100, 50);
+      strokeWeight(2);
+      const startGap = regression.predict(this.startYear);
+      const endGap = regression.predict(this.endYear);
+      line(
+        this.mapYearToWidth(this.startYear),
+        this.mapPayGapToHeight(startGap),
+        this.mapYearToWidth(this.endYear),
+        this.mapPayGapToHeight(endGap)
+      );
+
+      // Trend info label
+      fill(255, 100, 50);
+      noStroke();
+      textAlign(RIGHT, TOP);
+      textSize(10);
+      text(
+        `Trend: ${regression.slope > 0 ? '+' : ''}${regression.slope.toFixed(3)}%/year  R\u00B2=${regression.rSquared.toFixed(3)}`,
+        this.layout.rightMargin,
+        this.layout.topMargin + 5
+      );
+      // R² explanation annotation
+      fill(150);
+      textSize(9);
+      text(
+        "(R\u00B2 closer to 1 = stronger linear trend)",
+        this.layout.rightMargin,
+        this.layout.topMargin + 18
+      );
+    }
+    //my code ends here
   };
 
   this.drawTitle = function() {
